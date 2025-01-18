@@ -128,7 +128,7 @@ int monoserveurMonoclient() {
     // Acceptation d'une seule connexion
     client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &client_len);
     if (client_sock < 0) {
-        perror("accept");
+        perror("Accept error");
         exit(EXIT_FAILURE);
     }
     printf("Connexion acceptée.\n");
@@ -194,7 +194,7 @@ int multiClientMultiServer() {
         backend_addr.sin_family = AF_INET;
         backend_addr.sin_port = htons(BACKEND_PORT); // Port d'un serveur secondaire
         inet_pton(AF_INET, "127.0.0.1", &backend_addr.sin_addr);
-connect(backend_sock, (struct sockaddr *)&backend_addr, sizeof(backend_addr));
+        connect(backend_sock, (struct sockaddr *)&backend_addr, sizeof(backend_addr));
        
         // Transfert des données entre client et serveur secondaire
         proxy_data(client_sock, backend_sock);
