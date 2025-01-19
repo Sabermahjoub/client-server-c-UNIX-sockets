@@ -32,38 +32,8 @@ typedef struct {
     pthread_mutex_t mutex;
 } connection_pool_t;
 
-connection_pool_t *create_connection_pool(int *server_ports, int num_servers) {
-    connection_pool_t *pool = malloc(sizeof(connection_pool_t));
-    pool->connections = malloc(sizeof(int) * num_servers);
-    pool->size = num_servers;
-    pthread_mutex_init(&pool->mutex, NULL);
 
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    for (int i = 0; i < num_servers; i++) {
-        pool->connections[i] = socket(AF_INET, SOCK_STREAM, 0);
-        server_addr.sin_port = htons(server_ports[i]);
-        
-        if (connect(pool->connections[i], (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-            perror("Server connection failed in pool");
-            // Handle error more gracefully in production
-            close(pool->connections[i]);
-            pool->connections[i] = -1;
-        }
-    }
-    
-    return pool;
-}
-
-int get_server_connection(connection_pool_t *pool, int server_index) {
-    pthread_mutex_lock(&pool->mutex);
-    int connection = pool->connections[server_index];
-    pthread_mutex_unlock(&pool->mutex);
-    return connection;
-}
-
+// handle_client is the function which the thread will be running for each new client request.
 void *handle_client(void *arg) {
     thread_data_t *data = (thread_data_t *)arg;
     int client_sock = data->client_sock;
@@ -101,6 +71,7 @@ void *handle_client(void *arg) {
 
     // Main client handling loop
     while (1) {
+        //Reinitilisation of buffer
         memset(buffer, 0, BUFFER_SIZE);
         
         // Read client choice
@@ -120,6 +91,7 @@ void *handle_client(void *arg) {
 
         if (choice >= 1 && choice <= 4) {
             // Get connection from pool for the specific server
+            // This prevents multiple threads from creating server connections simultaneously, which could cause race conditions.
             pthread_mutex_lock(&server_mutex);
             int server_sock = socket(AF_INET, SOCK_STREAM, 0);
             struct sockaddr_in server_addr;
@@ -158,6 +130,7 @@ void *handle_client(void *arg) {
             struct timeval tv;
             tv.tv_sec = 5;  // 5 second timeout
             tv.tv_usec = 0;
+            // This prevents threads from hanging indefinitely waiting for server responses.
             setsockopt(server_sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
             memset(buffer, 0, BUFFER_SIZE);
@@ -171,6 +144,7 @@ void *handle_client(void *arg) {
         }
     }
 
+// This ensures resources are properly released when a client disconnects.
 cleanup:
     close(client_sock);
     free(data);
@@ -206,6 +180,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Set socket options for reuse
+    // This is used to prevent the "Address already in use" error.
     int opt = 1;
     if (setsockopt(lb_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
         perror("Setsockopt failed");
