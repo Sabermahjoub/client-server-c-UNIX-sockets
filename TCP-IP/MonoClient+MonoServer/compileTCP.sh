@@ -2,9 +2,9 @@
 
 # Variables des fichiers sources et exécutables
 CLIENT_SRC="clientTCP.c"
-SERVER_SRC="serveurTCP.c"
+SERVER_SRC="serverTCP.c"
 CLIENT_EXEC="clientTCP"
-SERVER_EXEC="serveurTCP"
+SERVER_EXEC="serverTCP"
 
 # Compilation
 echo "Compilation du client..."
