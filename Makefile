@@ -23,6 +23,11 @@ install_raylib:$(EXTERNAL)
 install_raygui:$(EXTERNAL) $(EXTERNAL)/raygui
 	@cd ./external/raygui && curl -o raygui.h https://raw.githubusercontent.com/raysan5/raygui/master/src/raygui.h
 
+build: 
+	@mkdir -p build/
+	@RAYLIB_PATH="./external/raylib-5.0/lib"; \
+	gcc -I"./external/raylib-5.0/include" -L"./external/raylib-5.0/lib" -o ./build/main ./src/main.c -lraylib -lm -lglfw -ldl -lpthread -w
+
 run:
 	@export LD_LIBRARY_PATH=./external/raylib-5.0/lib; \
 	./build/main
