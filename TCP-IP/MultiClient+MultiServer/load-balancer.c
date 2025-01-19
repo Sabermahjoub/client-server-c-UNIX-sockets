@@ -10,6 +10,10 @@
 #define BUFFER_SIZE 1024
 #define MAX_SERVERS 10
 
+// Login credentials -- Données pour l'authentification.
+#define USERNAME "admin"
+#define PASSWORD "password"
+
 // Structure to pass multiple parameters to the thread
 typedef struct {
     // Client Socket (after accepting the client connexion)
@@ -38,6 +42,33 @@ void *handle_client(void *arg) {
     // Connect to the next server in round-robin
     // int server_port = server_ports[server_index];
     // server_index = (server_index + 1) % num_servers;
+
+    // Authentification
+    int attempt = 0;
+    char client_auth[BUFFER_SIZE]; // BUFFER pour l'authentification.
+    while(attempt<3){
+        memset(client_auth,0,BUFFER_SIZE);
+        if (recv(client_sock, client_auth, BUFFER_SIZE, 0) <=0) {
+            printf("Client disconnected\n");
+            close(client_sock);
+            exit(EXIT_FAILURE);
+        }
+        if (strcmp(client_auth, USERNAME ":" PASSWORD) != 0)
+        {
+            attempt++;
+            send(client_sock, "AUTH_FAILED", strlen("AUTH_FAILED"), 0);
+            if (attempt == 3){
+                close(client_sock);
+                exit(EXIT_FAILURE);
+            }
+        }
+        else {
+            send(client_sock, "AUTH_OK", strlen("AUTH_OK"), 0);
+            break;
+        }
+
+    }
+    // END Authentication
 
     // Client choice 1, 2 , ... 5
     // Read initial choice from client
