@@ -4,3 +4,5 @@
 **/*.bin
 external/
 .vscode
+build/
+.vscode
