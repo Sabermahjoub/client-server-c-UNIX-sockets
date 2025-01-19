@@ -140,82 +140,27 @@ void *handle_client(void *arg) {
             }
             size_t total_bytes = 0;
 
-    if (choice == 4) {
-        printf("CHOICE IS 4 :#######\n");
-        
-        // Create separate buffers for confirmation and response
-        char confirm_buffer[BUFFER_SIZE];
-        char response_buffer[BUFFER_SIZE];
-        memset(confirm_buffer, 0, BUFFER_SIZE);
-        memset(response_buffer, 0, BUFFER_SIZE);
+            if (choice == 4) {
+                printf("CHOICE IS 4 :####### \n");
+                memset(buffer, 0, BUFFER_SIZE);
+                // bytes_read = recv(server_sock, temp_buffer, BUFFER_SIZE - total_bytes - 1, MSG_DONTWAIT);
+                bytes_read = recv(server_sock, buffer, BUFFER_SIZE, 0);
 
-        // First read: Get confirmation message
-        bytes_read = recv(server_sock, confirm_buffer, BUFFER_SIZE, 0);
-        if (bytes_read <= 0) {
-            printf("Server 4 didn't confirm the message\n");
-            break;
-        }
-        printf("Confirmation message from server 4 is: %s\n", confirm_buffer);
-
-        // Send the start time
-        send_result = send(server_sock, &start_seconds, sizeof(time_t), 0);
-        if (send_result < 0) {
-            perror("Failed to send to server");
-            break;
-        }
-        printf("Successfully sent the starting time to server 4: %ld\n", start_seconds);
-
-        // Wait a small amount of time for the server to process
-        usleep(100000);  // 100ms delay
-
-        // Second read: Get the actual response
-        size_t total_bytes = 0;
-        int attempts = 0;
-        int max_attempts = 10;
-
-        while (attempts < max_attempts) {
-            bytes_read = recv(server_sock, temp_buffer, BUFFER_SIZE - total_bytes - 1, MSG_DONTWAIT);
-            
-            if (bytes_read > 0) {
-                memcpy(response_buffer + total_bytes, temp_buffer, bytes_read);
-                total_bytes += bytes_read;
-                response_buffer[total_bytes] = '\0';
-                
-                // Check if we have a complete message
-                if (strchr(response_buffer, '\n') != NULL) {
+                if (bytes_read <= 0) {
+                    printf("Server 4 didn't confirm the message\n");
                     break;
                 }
-                memset(temp_buffer, 0, BUFFER_SIZE);
-            } 
-            else if (bytes_read == 0) {
-                printf("Server closed connection\n");
-                break;
-            }
-            else if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                perror("Error reading from server");
-                break;
-            }
-            
-            usleep(50000);
-            attempts++;
-        }
+                printf("Confirmation message from server 4 is : %s \n", buffer);
 
-        printf("Read %zu bytes after %d attempts\n", total_bytes, attempts);
-        
-        // Only send the response (not the confirmation) to the client
-        if (total_bytes > 0) {
-            printf("Server response: %s\n", response_buffer);
-            
-            int send_bytes = send(client_sock, response_buffer, total_bytes, 0);
-            if (send_bytes < 0) {
-                perror("Failed to send to client");
-                break;
+                send_result = send(server_sock, &start_seconds, sizeof(time_t), 0);
+                if (send_result < 0) {
+                    perror("Failed to send to server");
+                    break;
+                }
+                printf("Succesfully sent the starting time to server 4 : %d", start_seconds);
+                memset(buffer, 0, BUFFER_SIZE);
+                memset(temp_buffer, 0, BUFFER_SIZE);
             }
-            printf("Sent %d bytes to client\n", send_bytes);
-        } else {
-            printf("Warning: No data received from server after %d attempts\n", attempts);
-        }
-    }
 
 
             // Clear buffers

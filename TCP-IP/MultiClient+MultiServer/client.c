@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
 
     // Communicate with server through load balancer
     while (1) {
-        printf("Enter your choice / Votre choix : ");
         memset(buffer, 0, BUFFER_SIZE);
+        printf("Enter your choice / Votre choix : ");
         fgets(buffer, BUFFER_SIZE, stdin);
         buffer[strcspn(buffer, "\n")] = '\0';
 
@@ -88,6 +88,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
         send(sock, buffer, strlen(buffer), 0);
+        memset(buffer, 0, BUFFER_SIZE);
         int bytes_received = read(sock, buffer, BUFFER_SIZE);
         buffer[bytes_received] = '\0';
         printf("Server replied: %s\n", buffer);

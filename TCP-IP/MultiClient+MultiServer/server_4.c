@@ -115,10 +115,10 @@ void start_server(int port) {
                 }
 
                 char* response = handle_client_service4(start_seconds); // Get the response
-                printf("RESPONSE : %s", response);
-                fflush(stdout);
+                printf("RESPONSE : %s \n", response);
                 // Send time lapse between start and end time.
-                send(client_sock, response, BUFFER_SIZE, 0);
+                send(client_sock, response, strlen(response), 0);
+                fflush(stdout);
 
         
 
