@@ -39,10 +39,54 @@ int main(int argc, char *argv[]) {
 
     printf("Connected to load balancer on port %d\n", lb_port);
 
+    // Authentification
+    char username[50], password[50];
+    int attempt = 0;
+    while (attempt<3) {
+        memset(buffer, 0, BUFFER_SIZE);
+
+        printf("Username / Nom d'utilisateur : ");
+        scanf("%s", username);
+        printf("Password / Mot de passe : ");
+        scanf("%s", password);
+
+        snprintf(buffer, BUFFER_SIZE, "%s:%s", username, password);
+        send(sock, buffer, strlen(buffer), 0);
+
+        memset(buffer, 0, BUFFER_SIZE);
+
+        // Vérification de l'authentification -- Authentication verification
+        recv(sock, buffer, BUFFER_SIZE-1, 0);
+        buffer[BUFFER_SIZE] = '\0';
+        if (strcmp(buffer, "AUTH_OK") != 0) {
+            printf("Invalid credentials / Authentification échouée.\n");
+            attempt++;
+            printf("Tentative/Attempt n°: %d \n", attempt);
+            if (attempt == 3){
+                printf("Nombre de tentatives est dépassé / Number of attempts is exceeded :\n");
+                close(sock);
+                exit(EXIT_FAILURE);
+            }
+        }
+        else {
+            printf("Successful authentication / authentification réussie.\n");
+            break;
+        }
+
+    }
+
+
     // Communicate with server through load balancer
     while (1) {
-        printf("Enter message: ");
+        printf("Enter your choice / Votre choix : ");
+        memset(buffer, 0, BUFFER_SIZE);
         fgets(buffer, BUFFER_SIZE, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        if (strcmp(buffer,"1") != 0 && strcmp(buffer,"2") != 0 && strcmp(buffer,"3") != 0 && strcmp(buffer,"4") != 0 && strcmp(buffer,"5") != 0 ){
+            printf("Invalid input of choice / choix invalide :\n");
+            continue;
+        }
         send(sock, buffer, strlen(buffer), 0);
         int bytes_received = read(sock, buffer, BUFFER_SIZE);
         buffer[bytes_received] = '\0';
