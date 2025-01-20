@@ -1,5 +1,7 @@
 #pragma once
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <arpa/inet.h>
 #include "raylib.h"
 #include <string.h>
@@ -31,8 +33,6 @@ bool authenticateUser(const char* buffer) {
 
 int authenticate(int sock)
 {
-
-
     // Initialization
     const int screenWidth = 800;
     const int screenHeight = 450;
@@ -88,12 +88,18 @@ int authenticate(int sock)
         // Draw different screens based on state
         switch(currentState) {
             case AUTH_LOGIN:
-            {
-                
+            {   
                 // Title
                 DrawText("Authentication System", screen_width / 4.5, 
                         screen_height / 10, screen_height/10, RAYWHITE);
-                
+
+                char attemps_left[50] = "Attemps lefts : ";
+                char str[50];
+                sprintf(str, "%d", 3 - attempt) ;
+                strcat(attemps_left, str);
+
+                DrawText(attemps_left, screen_width / 2.4, 
+                        screen_height / 5, screen_height/25, ORANGE);                
                 // Username input
                 Rectangle username_input_box = {
                     (screen_width-0.3*screen_width)/2,
@@ -101,6 +107,7 @@ int authenticate(int sock)
                     screen_width*0.3,
                     screen_height*0.07
                 };
+
                 DrawText("Username:", username_input_box.x, 
                         username_input_box.y - screen_height/20, screen_height/20, RAYWHITE);
                 
@@ -227,6 +234,7 @@ int authenticate(int sock)
                         screen_height/2 - 20, 40, GREEN);
                 DrawText("Press ESC to exit", screen_width/2 - MeasureText("Press ESC to exit", 20)/2,
                         screen_height/2 + 40, 20, RAYWHITE);
+                return 1;
             } break;
             
             case AUTH_FAILURE:

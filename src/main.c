@@ -1,4 +1,5 @@
 #include "./pages/login.h"
+#include "./pages/home.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #define BUFFER_SIZE 1024
 
 int main(int argc, char *argv[]) {
+
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <load_balancer_ip> <load_balancer_port>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -42,26 +44,11 @@ int main(int argc, char *argv[]) {
 
     int authentication = authenticate(sock);
     
-    // Unsuccefsull authentication
+    // Unsuccessfull authentication
     if (authentication == 0) exit(EXIT_FAILURE);
 
     // Communicate with server through load balancer
-    while (1) {
-        memset(buffer, 0, BUFFER_SIZE);
-        printf("Enter your choice / Votre choix : ");
-        fgets(buffer, BUFFER_SIZE, stdin);
-        buffer[strcspn(buffer, "\n")] = '\0';
-
-        if (strcmp(buffer,"1") != 0 && strcmp(buffer,"2") != 0 && strcmp(buffer,"3") != 0 && strcmp(buffer,"4") != 0 && strcmp(buffer,"5") != 0 ){
-            printf("Invalid input of choice / choix invalide :\n");
-            continue;
-        }
-        send(sock, buffer, strlen(buffer), 0);
-        memset(buffer, 0, BUFFER_SIZE);
-        int bytes_received = read(sock, buffer, BUFFER_SIZE);
-        buffer[bytes_received] = '\0';
-        printf("Server replied: %s\n", buffer);
-    }
+    int h = home(sock);
 
     close(sock);
     return 0;
