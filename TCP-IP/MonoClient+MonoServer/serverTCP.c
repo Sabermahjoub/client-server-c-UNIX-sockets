@@ -11,15 +11,15 @@
 #define USERNAME "admin"
 #define PASSWORD "password"
 
-// Service 1: Current date and time
+// Service 1: heure actuelle
 char* handle_client_service1() {
     static char buffer[BUFFER_SIZE];
     time_t now = time(NULL);
-    snprintf(buffer, BUFFER_SIZE, "Current date and time: %s", ctime(&now));
+    snprintf(buffer, BUFFER_SIZE, "Heure actuelle: %s", ctime(&now));
     return buffer;
 }
 
-// Service 2: List of files in the current directory
+// Service 2: lister les fichiers dans un dossier
 char* handle_client_service2() {
     static char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
@@ -39,7 +39,7 @@ char* handle_client_service2() {
     return buffer;
 }
 
-// Service 3: Content of a specified file
+// Service 3: Afficher contenu d'un fichier specifié
 char* handle_client_service3(int client_sock) {
     static char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
@@ -58,7 +58,7 @@ char* handle_client_service3(int client_sock) {
     return buffer;
 }
 
-// Service 4: Elapsed time since connection
+// Service 4: Temps écoulé depuis connexion
 char* handle_client_service4(long start_seconds) {
     static char buffer[BUFFER_SIZE];
     struct timeval end_time;
@@ -75,13 +75,12 @@ void start_server(int port) {
     socklen_t client_len = sizeof(client_addr);
     char buffer[BUFFER_SIZE];
     
-    // Create server socket
+    // socket serveur
     if ((server_sock = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("Socket failed");
         exit(EXIT_FAILURE);
     }
 
-    // Set socket options
+    // config socket: famille/ addresse et port
     int opt = 1;
     if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         perror("setsockopt failed");
@@ -92,60 +91,63 @@ void start_server(int port) {
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(port);
 
-    // Bind socket to port
+    // binding du socket au port
     if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
 
-    // Start listening
-    if (listen(server_sock, 5) < 0) {
+    // lancer l'écoute sur socket serveur
+    if (listen(server_sock, 5) < 0) { //file d'attente max 5
         perror("Listen failed");
         exit(EXIT_FAILURE);
     }
 
-    printf("Server listening on port %d\n", port);
+    printf("Serveur à l'écoute sur le port:  %d\n", port);
 
     while (1) {
         // Accept client connection
         client_sock = accept(server_sock, (struct sockaddr *)&client_addr, &client_len);
         if (client_sock < 0) {
-            perror("Accept failed");
+            perror("Client socket non accepté");
             continue;
         }
 
-        printf("Client connected.\n");
+        printf("Client connecté.\n");
+        // temps et date actuelles
         struct timeval start_time;
         gettimeofday(&start_time, NULL);
 
-        // Authentication
+        // Boucle auth
         int authenticated = 0;
         for (int attempt = 0; attempt < 3; ++attempt) {
             memset(buffer, 0, BUFFER_SIZE);
             recv(client_sock, buffer, BUFFER_SIZE, 0);
+            // printf("<<<received password is %s",buffer);
+            // printf("<<<<expected password is %s",USERNAME ":" PASSWORD);
 
             if (strcmp(buffer, USERNAME ":" PASSWORD) == 0) {
                 authenticated = 1;
-                send(client_sock, "AUTH_OK\n", 8, 0);
-                printf("Client authenticated successfully.\n");
+                send(client_sock, "AUTH_OK", 8, 0);
+                printf("Client authentifié avec succès.\n");
                 break;
             } else {
-                send(client_sock, "AUTH_FAILED\n", 12, 0);
-                printf("Invalid credentials. Attempt %d/3\n", attempt + 1);
+                send(client_sock, "AUTH_FAILED", 12, 0);
+                printf("Echec d'auth. Tentative %d/3\n", attempt + 1);
             }
         }
 
         if (!authenticated) {
-            printf("Authentication failed. Closing connection.\n");
+            printf("Auth échouée. Connexion sera fermée.\n");
             close(client_sock);
             continue;
         }
 
-        // Handle services
+        // Boucle principale / si auth réussie
         while (1) {
             memset(buffer, 0, BUFFER_SIZE);
             if (recv(client_sock, buffer, BUFFER_SIZE, 0) <= 0) {
-                printf("Client disconnected.\n");
+                printf("Client déconnecté.\n");
                 break;
             }
 
@@ -161,17 +163,17 @@ void start_server(int port) {
             } else if (strcmp(buffer, "4") == 0) {
                 response = handle_client_service4(start_time.tv_sec);
             } else if (strcmp(buffer, "5") == 0) {
-                printf("Client chose to exit.\n");
+                printf("Client a quitté.\n");
                 break;
             } else {
-                response = "Invalid option.\n";
+                response = "Option non valide.\n";
             }
 
             send(client_sock, response, strlen(response), 0);
         }
 
         close(client_sock);
-        printf("Client connection closed.\n");
+        printf("connexion fermée.\n");
     }
 
     close(server_sock);

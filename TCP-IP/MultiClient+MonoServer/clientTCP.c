@@ -18,7 +18,7 @@ void print_menu() {
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        fprintf(stderr, "Usage: %s <server_ip> <port>\n", argv[0]);
+        fprintf(stderr, "Utilisation : %s <adresse_ip_serveur> <port>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -29,35 +29,35 @@ int main(int argc, char *argv[]) {
     char buffer[BUFFER_SIZE];
     char username[50], password[50];
 
-    // Create socket
+    // Création du socket
     if ((client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Socket creation failed");
+        perror("Échec de la création du socket");
         exit(EXIT_FAILURE);
     }
 
-    // Configure server address
+    // Configuration de l'adresse du serveur
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
     if (inet_pton(AF_INET, server_ip, &server_addr.sin_addr) <= 0) {
-        perror("Invalid server address");
+        perror("Adresse du serveur invalide");
         close(client_sock);
         exit(EXIT_FAILURE);
     }
 
-    // Connect to server
+    // Connexion au serveur
     if (connect(client_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Connection failed");
+        perror("Échec de la connexion");
         close(client_sock);
         exit(EXIT_FAILURE);
     }
 
-    printf("Connected to the server\n");
+    printf("Connecté au serveur\n");
 
-    // Authentication
+    // Boucle d'authentification
     for (int attempt = 0; attempt < 3; attempt++) {
-        printf("Enter username: ");
+        printf("Entrez votre nom d'utilisateur : ");
         scanf("%s", username);
-        printf("Enter password: ");
+        printf("Entrez votre mot de passe : ");
         scanf("%s", password);
 
         snprintf(buffer, BUFFER_SIZE, "%s:%s", username, password);
@@ -65,20 +65,20 @@ int main(int argc, char *argv[]) {
 
         memset(buffer, 0, BUFFER_SIZE);
         recv(client_sock, buffer, BUFFER_SIZE, 0);
-        // if (strcmp(buffer, "AUTH_OK") == 0) {
-            printf("Authentication successful\n");
+        if (strcmp(buffer, "AUTH_OK") == 0) {
+            printf("Authentification réussie\n");
             break;
-        // } else {
-        //     printf("Authentication failed. %d attempts remaining.\n", 2 - attempt);
-        //     if (attempt == 2) {
-        //         printf("Too many failed attempts. Exiting.\n");
-        //         close(client_sock);
-        //         exit(EXIT_FAILURE);
-        //     }
-        // }
+        } else {
+            printf("Authentification échouée. Il reste %d tentatives.\n", 2 - attempt);
+            if (attempt == 2) {
+                printf("Trop de tentatives échouées. Fermeture.\n");
+                close(client_sock);
+                exit(EXIT_FAILURE);
+            }
+        }
     }
 
-    // Main loop
+    // Boucle principale
     while (1) {
         print_menu();
         int choice;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
         send(client_sock, buffer, strlen(buffer), 0);
 
         if (choice == 5) {
-            printf("Exiting...\n");
+            printf("Fermeture...\n");
             break;
         }
 
@@ -96,8 +96,8 @@ int main(int argc, char *argv[]) {
         recv(client_sock, buffer, BUFFER_SIZE, 0);
 
         if (choice == 3) {
-            // Request file content
-            printf("Enter the filename: ");
+            // Demander le contenu d'un fichier
+            printf("Entrez le nom du fichier : ");
             char filename[50];
             scanf("%s", filename);
             send(client_sock, filename, strlen(filename), 0);
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
             recv(client_sock, buffer, BUFFER_SIZE, 0);
         }
 
-        printf("Server response:\n%s\n", buffer);
+        printf("Réponse du serveur :\n%s\n", buffer);
     }
 
     close(client_sock);

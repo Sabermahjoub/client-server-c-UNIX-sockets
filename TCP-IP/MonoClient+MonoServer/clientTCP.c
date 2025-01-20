@@ -29,56 +29,54 @@ int main(int argc, char *argv[]) {
     char buffer[BUFFER_SIZE];
     char username[50], password[50];
 
-    // Create socket
+    // creer socket
     if ((client_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    // Configure server address
+    // addresse du serveur
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
     if (inet_pton(AF_INET, server_ip, &server_addr.sin_addr) <= 0) {
-        perror("Invalid server address");
         close(client_sock);
         exit(EXIT_FAILURE);
     }
 
-    // Connect to server
+    // connexion au serveur
     if (connect(client_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Connection failed");
         close(client_sock);
         exit(EXIT_FAILURE);
     }
 
-    printf("Connected to the server\n");
+    printf("Connexion réussie\n");
 
-    // Authentication
+    // Boucle d'auth
     for (int attempt = 0; attempt < 3; attempt++) {
-        printf("Enter username: ");
+        printf("Saisir nom d'utilisateur: ");
         scanf("%s", username);
-        printf("Enter password: ");
+        printf("Saisir mot de passe ");
         scanf("%s", password);
 
         snprintf(buffer, BUFFER_SIZE, "%s:%s", username, password);
+        // printf(">>>sent password is %s",buffer);
         send(client_sock, buffer, strlen(buffer), 0);
 
         memset(buffer, 0, BUFFER_SIZE);
         recv(client_sock, buffer, BUFFER_SIZE, 0);
-        // if (strcmp(buffer, "AUTH_OK") == 0) {
-            printf("Authentication successful\n");
+        if (strcmp(buffer, "AUTH_OK") == 0) {
+            printf("Auth réussie\n");
             break;
-        // } else {
-        //     printf("Authentication failed. %d attempts remaining.\n", 2 - attempt);
-        //     if (attempt == 2) {
-        //         printf("Too many failed attempts. Exiting.\n");
-        //         close(client_sock);
-        //         exit(EXIT_FAILURE);
-        //     }
-        // }
+        } else {
+            printf("Auth échouée. %d tentatives restantes.\n", 2 - attempt);
+            if (attempt == 2) {
+                printf("Échec. Connexion annulée.\n");
+                close(client_sock);
+                exit(EXIT_FAILURE);
+            }
+        }
     }
 
-    // Main loop
+    // boucle principale / fonctions à invoquer
     while (1) {
         print_menu();
         int choice;
@@ -88,16 +86,15 @@ int main(int argc, char *argv[]) {
         send(client_sock, buffer, strlen(buffer), 0);
 
         if (choice == 5) {
-            printf("Exiting...\n");
+            printf("Exit...\n");
             break;
         }
 
         memset(buffer, 0, BUFFER_SIZE);
         recv(client_sock, buffer, BUFFER_SIZE, 0);
-
+// aperçu contenu du fichier
         if (choice == 3) {
-            // Request file content
-            printf("Enter the filename: ");
+            printf("Saisir le nom du fichier ");
             char filename[50];
             scanf("%s", filename);
             send(client_sock, filename, strlen(filename), 0);
@@ -106,7 +103,7 @@ int main(int argc, char *argv[]) {
             recv(client_sock, buffer, BUFFER_SIZE, 0);
         }
 
-        printf("Server response:\n%s\n", buffer);
+        printf("Réponse du serveur :\n%s\n", buffer);
     }
 
     close(client_sock);
