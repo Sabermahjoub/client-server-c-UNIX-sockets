@@ -21,10 +21,10 @@ build:
 
 run:
 	@export LD_LIBRARY_PATH=./external/raylib-5.0/lib; \
-	./build/main
+	./build/main 127.0.0.1 8080 
 run_saber:
 	@export LD_LIBRARY_PATH=./external/raylib-5.0/lib; \
-	LIBGL_ALWAYS_SOFTWARE=1 ./build/main
+	LIBGL_ALWAYS_SOFTWARE=1 ./build/main 127.0.0.1 8080 
 
 clean : 
 	rm -rf build

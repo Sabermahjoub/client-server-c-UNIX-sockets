@@ -1,7 +1,9 @@
 #pragma once
-
+#include <unistd.h>
+#include <arpa/inet.h>
 #include "raylib.h"
 #include <string.h>
+#define BUFFER_SIZE 1024
 
 // Important: Include raylib.h before defining RAYGUI_IMPLEMENTATION
 #define RAYGUI_IMPLEMENTATION
@@ -16,20 +18,26 @@ typedef enum {
 } AuthState;
 
 // Function to simulate authentication (replace with real authentication logic)
-bool authenticateUser(const char* username, const char* password) {
-    // Simulate network delay
-    WaitTime(1.0);
-    // Simple demo authentication
-    return (strcmp(username, "demo") == 0 && strcmp(password, "password") == 0);
+bool authenticateUser(const char* buffer) {
+    if (strcmp(buffer, "AUTH_OK") != 0) {
+        printf("Invalid credentials / Authentification échouée.\n");
+        return false;
+    }
+    else {
+        printf("Successful authentication / authentification réussie.\n");
+        return true;
+    }
 }
 
-int authenticate(void)
+int authenticate(int sock)
 {
+
+
     // Initialization
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "Enhanced Authentication System");
+    InitWindow(screenWidth, screenHeight, "Authentication System");
 
     // State variables
     AuthState currentState = AUTH_LOGIN;
@@ -37,8 +45,11 @@ int authenticate(void)
     bool showPassword = false;
     
     // Input buffers and states
-    char username[250] = "";
-    char password[250] = "";
+    char username[50] = "";
+    char password[50] = "";
+    char buffer[BUFFER_SIZE];
+    memset(buffer, 0, BUFFER_SIZE);
+    int attempt = 0;
     char errorMessage[100] = "";
     bool usernameEditMode = false;
     bool passwordEditMode = false;
@@ -49,7 +60,7 @@ int authenticate(void)
     SetTargetFPS(60);
 
     // Main game loop
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() && attempt <3)
     {
         // Update
         if (currentState == AUTH_LOADING) {
@@ -154,14 +165,29 @@ int authenticate(void)
                         messageTimer = 3.0f;
                     } else {
                         currentState = AUTH_LOADING;
-                        // Simulate authentication in a real app you'd want this in a separate thread
-                        if (authenticateUser(username, password)) {
+                        snprintf(buffer, BUFFER_SIZE, "%s:%s", username, password);
+                        send(sock, buffer, strlen(buffer), 0);
+
+                        memset(buffer, 0, BUFFER_SIZE);
+                        // Vérification de l'authentification -- Authentication verification
+                        recv(sock, buffer, BUFFER_SIZE-1, 0);
+                        buffer[BUFFER_SIZE] = '\0';
+                        if (authenticateUser(buffer)) {
                             currentState = AUTH_SUCCESS;
                         } else {
+                            attempt++;
+                            printf("Tentative/Attempt n°: %d \n", attempt);
+                            if (attempt == 3){
+                                printf("Nombre de tentatives est dépassé / Number of attempts is exceeded :\n");
+                                close(sock);
+                                exit(EXIT_FAILURE);
+                            }
                             strcpy(errorMessage, "Invalid credentials");
                             currentState = AUTH_FAILURE;
                             messageTimer = 3.0f;
                         }
+
+
                     }
                 }
                 
