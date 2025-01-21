@@ -8,7 +8,6 @@
 #define BUFFER_SIZE 1024
 
 // Important: Include raylib.h before defining RAYGUI_IMPLEMENTATION
-#define RAYGUI_IMPLEMENTATION
 #include "../../external/raygui/src/raygui.h"
 
 // Authentication states

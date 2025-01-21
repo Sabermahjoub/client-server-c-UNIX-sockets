@@ -10,10 +10,18 @@
 //Service 1
 char* handle_client_service3(int client_sock)
 {
-    char* buffer = (char*)malloc(BUFFER_SIZE); // Allocate memory dynamically
+    static char buffer[BUFFER_SIZE];
+    memset(buffer, 0, BUFFER_SIZE); 
     char filename[50];
-    recv(client_sock, filename, sizeof(filename), 0);
-    printf("FILE NAME : %s", filename);
+    int bytes_read = recv(client_sock, filename, sizeof(filename), 0);
+    if (bytes_read <= 0) {
+        if (bytes_read == 0) {
+            printf("Client disconnected normally\n");
+        } else {
+            perror("recv failed");
+        }
+    }
+    printf("FILE NAME : %s \n", filename);
     FILE *file = fopen(filename, "r");
     if (file)
     {
@@ -22,7 +30,7 @@ char* handle_client_service3(int client_sock)
     }
     else
     {
-        snprintf(buffer, BUFFER_SIZE, "Erreur : Fichier introuvable.\n");
+        strncpy(buffer, "Erreur : Fichier introuvable.\n", BUFFER_SIZE - 1);
     }
     return buffer; // Return the dynamically allocated buffer
 
@@ -67,9 +75,35 @@ void start_server(int port) {
 
         printf("Client connected.\n");
         int bytes_read;
-        while ((bytes_read = read(client_sock, buffer, BUFFER_SIZE)) > 0) {
+        while (1) {
+            bytes_read = recv(client_sock, buffer, BUFFER_SIZE - 1, 0);
+            if (bytes_read <= 0) {
+                if (bytes_read == 0) {
+                    printf("Client disconnected normally\n");
+                } else {
+                    perror("recv failed");
+                }
+                break;
+            }
+
+            buffer[BUFFER_SIZE] = '\0';
+
+            printf("Received choice : %s \n", buffer);
+
+            if (strcmp(buffer, "3") == 0){
+                printf("Accepting request \n");
+                //Sends confirmation to the load balancer
+                const char* confirm_msg = "OK\n";
+                int bytes_sent = send(client_sock, confirm_msg, strlen(confirm_msg), 0);
+                if (bytes_sent <= 0) {
+                    perror("Confirmation message send failed");
+                }
+                else {
+                    printf("Sent %zd confirmation bytes to client\n", bytes_sent);
+                    memset(buffer, 0, BUFFER_SIZE);
+                }
+            }
             char* response = handle_client_service3(client_sock); // Get the response
-            printf("RESPONSE : %s", response);
             send(client_sock, response, BUFFER_SIZE, 0);
         }
 

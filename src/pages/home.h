@@ -8,6 +8,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+#define RAYGUI_IMPLEMENTATION
+#include "../../external/raygui/src/raygui.h"
+
 int home(int sock){
 
     // Initialization
@@ -31,6 +34,9 @@ int home(int sock){
 
     // Track active menu item
     int activeChoice = -1;
+    int getFileName = 0;
+    char fileName[250] = "";
+
 
     while (!WindowShouldClose()){
 
@@ -54,8 +60,10 @@ int home(int sock){
             if (CheckCollisionPointRec(mousePoint, menuItems[i])) {
                 activeChoice = i;
                 if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                    if (i==2) getFileName = 1;
                     choice = i+1;
                     // Communicate with server through load balancer
+                    if (choice == 1) {
                     sprintf(buffer, "%d", choice);
                     send(sock, buffer, strlen(buffer), 0);
                     memset(buffer, 0, BUFFER_SIZE);
@@ -63,6 +71,7 @@ int home(int sock){
                     buffer[bytes_received] = '\0';
                     strncpy(displayResponse, buffer, BUFFER_SIZE - 1);  // Update display response
                     printf("Server replied: %s\n", buffer);
+                    }
                 }
             }
         }
@@ -107,13 +116,19 @@ int home(int sock){
                     menuItems[i].x + 20,
                     menuItems[i].y + (menuItems[i].height - screen_Height/20) * 0.5f
                 };
-                
-                DrawText(menuItem,
-                        textPos.x,
-                        textPos.y,
-                        screen_Height/20,
-                        i == activeChoice ? HIGHLIGHT_COLOR : MENU_ITEM_COLOR);
+                if (i!=2 || getFileName == 0){
+                    DrawText(menuItem,
+                            textPos.x,
+                            textPos.y,
+                            screen_Height/20,
+                            i == activeChoice ? HIGHLIGHT_COLOR : MENU_ITEM_COLOR);
+                }
+                if (i == 2 && getFileName == 1){
+                    GuiTextBox(menuItems[i], fileName, 250, 1);
+                }
             }
+
+            
 
             // Response display area (right side)
             Rectangle responseArea = {

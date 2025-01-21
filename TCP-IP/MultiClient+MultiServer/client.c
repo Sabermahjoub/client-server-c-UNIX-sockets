@@ -82,15 +82,28 @@ int main(int argc, char *argv[]) {
         printf("Enter your choice / Votre choix : ");
         fgets(buffer, BUFFER_SIZE, stdin);
         buffer[strcspn(buffer, "\n")] = '\0';
-
+ 
         if (strcmp(buffer,"1") != 0 && strcmp(buffer,"2") != 0 && strcmp(buffer,"3") != 0 && strcmp(buffer,"4") != 0 && strcmp(buffer,"5") != 0 ){
             printf("Invalid input of choice / choix invalide :\n");
             continue;
         }
+        // Send choice to load balancer
         send(sock, buffer, strlen(buffer), 0);
+        if (strcmp(buffer, "3") == 0){
+            char filename[250];
+            memset(buffer, 0, BUFFER_SIZE);
+            int bytes_received = read(sock, buffer, BUFFER_SIZE);
+            buffer[bytes_received] = '\0';
+            printf("%s", buffer);
+            scanf("%s", filename);
+            if (send(sock, filename, strlen(filename), 0) <= 0){
+                perror("Error occurred while trying to send filename to server !\n");
+                continue;
+            }
+        }
         memset(buffer, 0, BUFFER_SIZE);
         int bytes_received = read(sock, buffer, BUFFER_SIZE);
-        buffer[bytes_received] = '\0';
+        // buffer[bytes_received] = '\0';
         printf("Server replied: %s\n", buffer);
     }
 
