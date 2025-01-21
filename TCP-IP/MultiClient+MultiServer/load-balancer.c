@@ -125,6 +125,26 @@ void *handle_client(void *arg) {
                     continue;
                 }
             }
+            if (choice == 3) {
+                if (recv(server_sock, buffer, BUFFER_SIZE, 0) <= 0) {
+                    close(server_sock);
+                    continue;
+                }
+                memset(buffer, 0, BUFFER_SIZE);
+                if (send(client_sock, "Send the file name", strlen("Send the file name"), 0) <= 0) {
+                    close(client_sock);
+                    continue;
+                }
+                if (recv(client_sock, buffer, BUFFER_SIZE, 0) <= 0) {
+                    close(server_sock);
+                    continue;
+                }
+                if (send(server_sock, buffer, BUFFER_SIZE, 0) <= 0) {
+                    close(client_sock);
+                    continue;
+                }
+ 
+            }
 
             // Read server response with timeout
             struct timeval tv;
