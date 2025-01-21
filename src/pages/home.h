@@ -20,7 +20,7 @@ int home(int sock){
     // Client choice
     int choice;
     char buffer[BUFFER_SIZE];
-    char displayResponse[BUFFER_SIZE] = "Server response will appear here...";
+    char displayResponse[BUFFER_SIZE] = "Choose the desired service \n \n Server response will appear here...";
     
     const Color BACKGROUND_COLOR = (Color){ 28, 36, 56, 255 };     // Dark blue background
     const Color TITLE_COLOR = (Color){ 238, 242, 255, 255 };       // Bright white
@@ -58,20 +58,42 @@ int home(int sock){
             };
             
             if (CheckCollisionPointRec(mousePoint, menuItems[i])) {
+                int bytes_received;
+
                 activeChoice = i;
-                if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
-                    if (i==2) getFileName = 1;
-                    choice = i+1;
+                choice = i+1;
+
+                if (choice == 3 && IsKeyPressed(KEY_ENTER) && strcmp(fileName,"") != 0){
                     // Communicate with server through load balancer
-                    if (choice == 1) {
                     sprintf(buffer, "%d", choice);
                     send(sock, buffer, strlen(buffer), 0);
                     memset(buffer, 0, BUFFER_SIZE);
-                    int bytes_received = read(sock, buffer, BUFFER_SIZE);
+                    printf("FILE'S NAME IS : %s \n", fileName);
+                    read(sock, buffer, BUFFER_SIZE);
+                    printf("BUFFER's content : %s \n", buffer);
+
+                    memset(buffer, 0, BUFFER_SIZE);
+                    send(sock, fileName, strlen(fileName), 0);
+                    bytes_received = read(sock, buffer, BUFFER_SIZE);
                     buffer[bytes_received] = '\0';
-                    strncpy(displayResponse, buffer, BUFFER_SIZE - 1);  // Update display response
+                    strncpy(displayResponse, buffer, BUFFER_SIZE - 1); 
                     printf("Server replied: %s\n", buffer);
+                }
+                if(IsMouseButtonDown(MOUSE_LEFT_BUTTON) && choice==3) getFileName = 1;
+                if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && choice!=3) {
+                    getFileName = 0 ;
+                    // Communicate with server through load balancer
+                    sprintf(buffer, "%d", choice);
+                    send(sock, buffer, strlen(buffer), 0);
+                    memset(buffer, 0, BUFFER_SIZE);
+
+                    if (choice != 3) {
+                        bytes_received = read(sock, buffer, BUFFER_SIZE);
+                        buffer[bytes_received] = '\0';
+                        strncpy(displayResponse, buffer, BUFFER_SIZE - 1);  // Update display response
+                        printf("Server replied: %s\n", buffer);
                     }
+                    
                 }
             }
         }
@@ -147,7 +169,7 @@ int home(int sock){
                     responseArea.x + 20, 
                     responseArea.y + 20, 
                     screenHeight/30, 
-                    TITLE_COLOR);
+                    SKYBLUE);
             
             // Draw actual response
             DrawText(TextSubtext(displayResponse, 0, strlen(displayResponse)),

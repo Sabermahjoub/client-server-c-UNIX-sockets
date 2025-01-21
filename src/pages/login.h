@@ -35,6 +35,8 @@ int authenticate(int sock)
     // Initialization
     const int screenWidth = 800;
     const int screenHeight = 450;
+    const Color BACKGROUND_COLOR = (Color){ 28, 36, 56, 255 };     // Dark blue background
+
 
     InitWindow(screenWidth, screenHeight, "Authentication System");
 
@@ -55,6 +57,22 @@ int authenticate(int sock)
     
     // Loading animation variables
     float loadingAngle = 0.0f;
+
+    // Define orange shades for the button theme
+    Color baseColorNormal = (Color){ 255, 140, 0, 255 };   // Standard orange
+    Color baseColorFocused = (Color){ 255, 165, 0, 255 };  // Brighter orange
+    Color baseColorPressed = (Color){ 200, 100, 0, 255 };  // Darker orange
+
+    // Apply the button theme
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(baseColorNormal));
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(baseColorFocused));
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(baseColorPressed));
+
+    // Adjust the text color for better visibility
+    GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(RAYWHITE));
+    GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, ColorToInt(WHITE));
+    GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, ColorToInt(LIGHTGRAY));
+
     
     SetTargetFPS(60);
 
@@ -82,7 +100,7 @@ int authenticate(int sock)
         int screen_width = GetRenderWidth();
         int screen_height = GetRenderHeight();
         
-        ClearBackground(DARKGRAY);
+        ClearBackground(BACKGROUND_COLOR);
         
         // Draw different screens based on state
         switch(currentState) {

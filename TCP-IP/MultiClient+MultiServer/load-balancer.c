@@ -131,7 +131,7 @@ void *handle_client(void *arg) {
                     continue;
                 }
                 memset(buffer, 0, BUFFER_SIZE);
-                if (send(client_sock, "Send the file name", strlen("Send the file name"), 0) <= 0) {
+                if (send(client_sock, "Type file's path", strlen("Type file's path"), 0) <= 0) {
                     close(client_sock);
                     continue;
                 }

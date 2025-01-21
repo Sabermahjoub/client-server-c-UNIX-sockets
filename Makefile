@@ -14,6 +14,7 @@ install_raylib:$(EXTERNAL)
 install_raygui:$(EXTERNAL)
 	@cd ./external && mkdir raygui && cd raygui && curl -L $(raygui_URL_LIB) -o raygui.tar.gz && tar -xzvf raygui.tar.gz --strip-components=1 && rm raygui.tar.gz
 
+
 build: 
 	@mkdir -p build/
 	@RAYLIB_PATH="./external/raylib-5.0/lib"; \
