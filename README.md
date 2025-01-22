@@ -58,6 +58,26 @@ The project consists of two main parts:
 - `CompileUDP.sh`: Compilation script for UDP components
 - `CompileTCP.sh`: Compilation script for TCP components
 
+### How to run GUI (for MultiClient and MultiServer TCP C/S communication) ? 
+
+* To see the GUI screenshots check the `Documentation+Screenshots.pdf`
+
+1- Run all 5 servers ( under `unixminiproject/TCP-IP/MultiClient+MultiServer/` ) 
+
+- `./server_1 8081`
+- `./server_2 8082`
+- `./server_3 8083`
+- `./server_4 8084`
+- `./load 8080 8081 8082 8084`
+  
+2- ( under `unixminiproject` ) 
+- `make clean && make build && make run`
+- Try `make clean && make build && make run_saber` in case of an error with the `make run` command
+
+( Possibily of running other clients on the terminal instead of GUI, under `unixminiproject/TCP-IP/MultiClient+MultiServer/` ) : 
+- `./client 127.0.0.1 8080`
+
+  
 ## Project Structure
 ```
 unixminiproject/
