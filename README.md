@@ -54,14 +54,6 @@ The project consists of two main parts:
 3. `TCP-IP/MultiClient+MultiServer` Multi-client/multi-server architecture
 4. `src/`GUI integration
 
-## Implementation Components
-
-### Source Files
-- `clientUDP.c`: UDP client implementation
-- `serveurUDP.c`: UDP server implementation
-- `clientTCP.c`: TCP client implementation
-- `serveurTCP.c`: TCP server implementation
-
 ### Build Scripts
 - `CompileUDP.sh`: Compilation script for UDP components
 - `CompileTCP.sh`: Compilation script for TCP components
